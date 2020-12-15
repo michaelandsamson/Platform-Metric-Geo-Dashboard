@@ -7,7 +7,7 @@ WITH sessions AS (
 	WHERE
 		DATE >= '2020-09-01' 
 	)
-	--gotta get rid of those stale sessions brah
+	--sessions sub table to join on 
 SELECT
 sessions.region,
 count(case when placements.ctv = 't' and interactions.name = 'initial' then 1 end) as ctv_initials,
@@ -18,8 +18,8 @@ count(case when interactions.name = 'video_completed' and placements.mobile = 1 
 count(case when interactions.name = 'video_completed' and placements.ctv = 1 then 1 end)::FLOAT/NULLIF(count(case when interactions.name = 'video_started' and placements.ctv= 1 then 1 end),0) as ctv_vcr
 from styx_production.interactions
 INNER JOIN sessions ON sessions.session_id = interactions.session_id
-AND interactions.created_at <= sessions.created_at + INTERVAL '48 hours' -- removing duplicates
-AND sessions.rn = 1 
+AND interactions.created_at <= sessions.created_at + INTERVAL '48 hours' -- account for time difference
+AND sessions.rn = 1 --remove duplicates
 LEFT JOIN
 facelift.placements on placements.identifier_hash = sessions.placement_hash
 where interactions.date >= '2020-09-01'
